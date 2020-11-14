@@ -144,7 +144,7 @@ int create(char *name, type nodeType){
 		inode_rwlock_unlock(parent_inumber);
 		return FAIL;
 	}
-
+	
 	inode_get(parent_inumber, &pType, &pdata);
 
 	if(pType != T_DIRECTORY) {
@@ -294,6 +294,7 @@ int lookup_lock(char *name) {
 		path = strtok(NULL, delim);
 	}
 
+	inode_rwlock_unlock(current_inumber);
 	return current_inumber;
 }
 

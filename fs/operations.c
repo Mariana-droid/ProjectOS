@@ -134,7 +134,7 @@ int create(char *name, type nodeType){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	parent_inumber = lookup(parent_name);
+	parent_inumber = lookup_lock(parent_name);
 
 	inode_rwlock_wrlock(parent_inumber);
 
@@ -179,8 +179,8 @@ int create(char *name, type nodeType){
 		inode_rwlock_unlock(child_inumber);
 		return FAIL;
 	}
-
 	inode_rwlock_unlock(parent_inumber);
+	lookup_unlock(parent_name);
 	inode_rwlock_unlock(child_inumber);
 	return SUCCESS;
 }
@@ -204,7 +204,7 @@ int delete(char *name){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	parent_inumber = lookup(parent_name);
+	parent_inumber = lookup_lock(parent_name);
 
 	inode_rwlock_wrlock(parent_inumber);
 
@@ -251,8 +251,9 @@ int delete(char *name){
 		       child_inumber, parent_name);
 		return FAIL;
 	}
-
+	
 	inode_rwlock_unlock(parent_inumber);
+	lookup_unlock(parent_name);
 	return SUCCESS;
 }
 
@@ -266,7 +267,38 @@ int delete(char *name){
  *     FAIL: otherwise
  * rlock
  */
-int lookup(char *name) {
+int lookup_lock(char *name) {
+	char full_path[MAX_FILE_NAME];
+	char delim[] = "/";
+
+	strcpy(full_path, name);
+
+	/* start at root node */
+	int current_inumber = FS_ROOT;
+
+	/* use for copy */
+	type nType;
+	union Data data;
+
+	inode_rwlock_rdlock(current_inumber);
+
+	/* get root inode data */
+	inode_get(current_inumber, &nType, &data);
+
+	char *path = strtok(full_path, delim);
+
+	/* search for all sub nodes */
+	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
+		inode_rwlock_rdlock(current_inumber);
+		inode_get(current_inumber, &nType, &data);
+		path = strtok(NULL, delim);
+	}
+
+	return current_inumber;
+}
+
+
+void lookup_unlock(char *name){
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
 	int inumbers[INODE_TABLE_SIZE];
@@ -281,8 +313,6 @@ int lookup(char *name) {
 	type nType;
 	union Data data;
 
-	inode_rwlock_rdlock(current_inumber);
-
 	inumbers[i] = current_inumber;
 	i++;
 	/* get root inode data */
@@ -292,7 +322,6 @@ int lookup(char *name) {
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
-		inode_rwlock_rdlock(current_inumber);
 		inumbers[i] = current_inumber;
 		i++;
 		inode_get(current_inumber, &nType, &data);
@@ -302,9 +331,7 @@ int lookup(char *name) {
 	for (i=i-1;i>=0;i--){
 		inode_rwlock_unlock(inumbers[i]);
 	}
-	return current_inumber;
 }
-
 
 /*
  * Prints tecnicofs tree.

@@ -150,7 +150,8 @@ void *applyCommands(){
                 }
                 break;
             case 'l':
-                searchResult = lookup(name);
+                searchResult = lookup_lock(name);
+                lookup_unlock(name);
                 if (searchResult >= 0)
                     printf("Search: %s found\n", name);
                 else

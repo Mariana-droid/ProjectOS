@@ -120,6 +120,7 @@ void processInput(FILE *input){
 
 void *applyCommands(){
     while (numberCommands > 0){
+        printf("thread id \n %ld\n",pthread_self());
     const char* command = removeCommand();
         if (command == NULL){
             return 0;

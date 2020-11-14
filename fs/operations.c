@@ -73,10 +73,13 @@ void destroy_fs() {
  */
 
 int is_dir_empty(DirEntry *dirEntries) {
+		inode_rwlock_rdlock(dirEntries->inumber);
+
 	if (dirEntries == NULL) {
+					inode_rwlock_unlock(dirEntries->inumber);
+
 		return FAIL;
 	}
-	inode_rwlock_rdlock(dirEntries->inumber);
 	for (int i = 0; i < MAX_DIR_ENTRIES; i++) {
 		if (dirEntries[i].inumber != FREE_INODE) {
 			inode_rwlock_unlock(dirEntries->inumber);
@@ -124,20 +127,22 @@ int lookup_sub_node(char *name, DirEntry *entries) {
  * rwlock
  */
 int create(char *name, type nodeType){
-
+	
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];
 	/* use for copy */
 	type pType;
 	union Data pdata;
-
+	printf("entra create\n");
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
+	printf("passo 1111\n");
+
 
 	parent_inumber = lookup_lock(parent_name);
-
+	printf("passo 22222\n");
 	inode_rwlock_wrlock(parent_inumber);
-
+	printf("passo 3333\n");
 	if (parent_inumber == FAIL) {
 		printf("failed to create %s, invalid parent dir %s\n",
 		        name, parent_name);
@@ -146,7 +151,7 @@ int create(char *name, type nodeType){
 	}
 	
 	inode_get(parent_inumber, &pType, &pdata);
-
+	printf("passo 44444\n");
 	if(pType != T_DIRECTORY) {
 		printf("failed to create %s, parent %s is not a dir\n",
 		        name, parent_name);
@@ -180,8 +185,11 @@ int create(char *name, type nodeType){
 		return FAIL;
 	}
 	inode_rwlock_unlock(parent_inumber);
-	lookup_unlock(parent_name);
 	inode_rwlock_unlock(child_inumber);
+	lookup_unlock(parent_name);
+
+	printf("sai create\n");
+
 	return SUCCESS;
 }
 
@@ -329,7 +337,7 @@ void lookup_unlock(char *name){
 		path = strtok(NULL, delim);
 	}
 
-	for (i=i-1;i>=0;i--){
+	for (i=i-2;i>=0;i--){
 		inode_rwlock_unlock(inumbers[i]);
 	}
 }

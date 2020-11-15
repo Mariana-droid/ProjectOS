@@ -73,20 +73,20 @@ void destroy_fs() {
  */
 
 int is_dir_empty(DirEntry *dirEntries) {
-		inode_rwlock_rdlock(dirEntries->inumber);
+
 
 	if (dirEntries == NULL) {
-	inode_rwlock_unlock(dirEntries->inumber);
+
 
 		return FAIL;
 	}
 	for (int i = 0; i < MAX_DIR_ENTRIES; i++) {
 		if (dirEntries[i].inumber != FREE_INODE) {
-			inode_rwlock_unlock(dirEntries->inumber);
+
 			return FAIL;
 		}
 	}
-	inode_rwlock_unlock(dirEntries->inumber);
+
 	return SUCCESS;
 }
 
@@ -99,7 +99,6 @@ int is_dir_empty(DirEntry *dirEntries) {
  * Returns:
  *  - inumber: found node's inumber
  *  - FAIL: if not found
- * rlock
  */
 int lookup_sub_node(char *name, DirEntry *entries) {
 	
@@ -289,6 +288,11 @@ int delete(char *name){
 	return SUCCESS;
 }
 
+int move(char *name){
+	int parent_inumber_before, child_inumber_before,parent_inumber_after,child_inumber_after;
+	char *parent_name_before, *child_name_before, *parent_name_after, *child_name_after,name_copy[MAX_FILE_NAME];
+	split_parent_child_from_path(name_copy, &parent_name, &child_name);
+}
 
 /*
  * Lookup for a given path.
@@ -363,12 +367,14 @@ int lookup_path(char *name,int *array){
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		inode_rwlock_rdlock(current_inumber);
+
 		array[i] = current_inumber;
 		i++;
 		inode_get(current_inumber, &nType, &data);
 		path = strtok(NULL, delim);
 	}
 	inode_rwlock_unlock(current_inumber);
+
 	return i -2;
 }
 

@@ -240,8 +240,8 @@ void inode_rwlock_rdlock(int inumber){
     if (inumber < 0 ){
         return;
     }
-    if(pthread_rwlock_rdlock(&inode_table[inumber].lock)!=0){
-        exit(EXIT_FAILURE);
+    if(pthread_rwlock_tryrdlock(&inode_table[inumber].lock)!=0){
+        return;
     }
 }
 
@@ -249,8 +249,8 @@ void inode_rwlock_wrlock(int inumber){
     if (inumber < 0 ){
         return;
     }
-    if(pthread_rwlock_wrlock(&inode_table[inumber].lock)!=0){
-        exit(EXIT_FAILURE);
+    if(pthread_rwlock_trywrlock(&inode_table[inumber].lock)!=0){
+        return;
     }
 }
 

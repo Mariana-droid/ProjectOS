@@ -58,10 +58,12 @@ int insertCommand(char* data) {
 /* adicao do mutex */
 char* removeCommand() {
     lock_mutex();
+    char* retorno;
     if(numberCommands > 0){
         numberCommands--;
+        retorno =inputCommands[headQueue++];
         unlock_mutex();
-        return inputCommands[headQueue++];  
+        return retorno;  
     }
     unlock_mutex();
     return NULL;
@@ -119,8 +121,9 @@ void processInput(FILE *input){
 }
 
 void *applyCommands(){
+
     while (numberCommands > 0){
-        printf("thread id \n %ld\n",pthread_self());
+
     const char* command = removeCommand();
         if (command == NULL){
             return 0;
@@ -132,14 +135,16 @@ void *applyCommands(){
             fprintf(stderr, "Error: invalid command in Queue\n");
             exit(EXIT_FAILURE);
         }
-
+        //printf("THREAD: %ld\n COMANDO: %s\n\n",pthread_self(),command);
         int searchResult;
         switch (token) {
             case 'c':
+                
                 switch (type) {
                     case 'f':
                         printf("Create file: %s\n", name);
                         create(name, T_FILE);
+                        //printf("thread SAI id:\n%ld\n\n",pthread_self());
                         break;
                     case 'd':
                         printf("Create directory: %s\n", name);
@@ -151,25 +156,33 @@ void *applyCommands(){
                 }
                 break;
             case 'l':
-                searchResult = lookup_lock(name);
-                lookup_unlock(name);
-                if (searchResult >= 0)
+                searchResult = lookup(name);
+                //printf("thread search id:\n%ld\n\n",pthread_self());
+
+                if (searchResult >= 0){
                     printf("Search: %s found\n", name);
-                else
+                }
+                else{
                     printf("Search: %s not found\n", name);
+                }
                 break;
 
             case 'd':
                 printf("Delete: %s\n", name);
                 delete(name);
+                //printf("thread delete id:\n%ld\n\n",pthread_self());
+
                 break;
             default: { /* error */
                 fprintf(stderr, "Error: command to apply\n");
                 exit(EXIT_FAILURE);
             }
         }
+                        //printf("thread sai id:\n%ld\n\n",pthread_self());
+
+
     }
-    return 0;
+        return 0;
 }
 
 int main(int argc, char* argv[]) {

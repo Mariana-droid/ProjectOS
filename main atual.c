@@ -38,10 +38,8 @@ void unlock_mutex(){
 
 int insertCommand(char* data) {
     lock_mutex();
-    printf("length = %d\n",buffer_length);
     while (buffer_length == MAX_COMMANDS){ 
-        pthread_cond_wait(&cheia,&trinco);   
-        printf("esperou e acabou\n");     
+        pthread_cond_wait(&cheia,&trinco);    
     }
     strcpy(inputCommands[write_index],data);
     /*printf("o que foi enfiado no insert %s\n",data);*/
@@ -159,8 +157,7 @@ void *applyCommands(){
                         }
                 break;
                 case 'l':
-                    searchResult = lookup_lock(name);
-                    lookup_unlock(name);
+                    searchResult = lookup(name);
                     if (searchResult >= 0)
                         printf("Search: %s found\n", name);
                     else

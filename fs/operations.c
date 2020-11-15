@@ -102,20 +102,19 @@ int is_dir_empty(DirEntry *dirEntries) {
  * rlock
  */
 int lookup_sub_node(char *name, DirEntry *entries) {
-	inode_rwlock_rdlock(entries->inumber);
+	
 
 	if (entries == NULL) {
-		inode_rwlock_unlock(entries->inumber);
+		
 		return FAIL;
 	}
 	for (int i = 0; i < MAX_DIR_ENTRIES; i++) {
 		/*teste*/
         if (entries[i].inumber != FREE_INODE && strcmp(entries[i].name, name) == 0) {
-            inode_rwlock_unlock(entries->inumber);
+            
 			return entries[i].inumber;
         }
-    }
-	inode_rwlock_unlock(entries->inumber);
+	}
 	return FAIL;
 }
 

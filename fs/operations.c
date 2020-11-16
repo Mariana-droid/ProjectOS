@@ -288,11 +288,11 @@ int delete(char *name){
 	return SUCCESS;
 }
 
-int move(char *name){
+/*int move(char *name){
 	int parent_inumber_before, child_inumber_before,parent_inumber_after,child_inumber_after;
 	char *parent_name_before, *child_name_before, *parent_name_after, *child_name_after,name_copy[MAX_FILE_NAME];
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
-}
+}*/
 
 /*
  * Lookup for a given path.

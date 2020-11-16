@@ -87,8 +87,8 @@ void processInput(){
     /* break loop with ^Z or ^D */
     while (fgets(line, sizeof(line)/sizeof(char), input)) {
         char token, type;
-        char name[MAX_INPUT_SIZE],other_name[MAX_INPUT_SIZE];
-        sscanf(line, "%c %s %c", &token);
+        char name[MAX_INPUT_SIZE]/*,other_name[MAX_INPUT_SIZE]*/;
+        /*sscanf(line, "%c %s %c", &token);
         if (token == 'm')
         {
             int numTokens = sscanf(line, "%c %s %c", &token, name, other_name);
@@ -98,7 +98,7 @@ void processInput(){
                 errorParse();
         }
         else
-        {
+        {*/
             int numTokens = sscanf(line, "%c %s %c", &token, name, &type);
         /* perform minimal validation */
             if (numTokens < 1) {
@@ -130,7 +130,7 @@ void processInput(){
                     errorParse();
                 }
             }
-        }
+        /*}*/
         
 
     }
@@ -140,15 +140,14 @@ void processInput(){
 
 void *applyCommands(){
     while (fim_do_input == 0 || buffer_length > 0){
-
         const char* command = removeCommand();
             if (command == NULL){
                 return 0;
             }
             char token, type;
-            char other_name[MAX_INPUT_SIZE];
+            /*char other_name[MAX_INPUT_SIZE];*/
             char name[MAX_INPUT_SIZE];
-            sscanf(command,"%c",&token);
+            /*sscanf(command,"%c",&token);
             if (token == 'm')
             {           
                 int numTokens = sscanf(command, "%c %s %s", &token, name, other_name);
@@ -156,7 +155,7 @@ void *applyCommands(){
                 move(name,other_name);
             }
             else
-            {
+            {*/
                 int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
                 if (numTokens < 2) {
                     fprintf(stderr, "Error: invalid command in Queue\n");
@@ -164,6 +163,7 @@ void *applyCommands(){
                 }
             //printf("%c %s %c aqui estao eles\n", token, name, type);
                 int searchResult;
+
                 switch (token) {
                     case 'c':
                         switch (type) {
@@ -200,7 +200,7 @@ void *applyCommands(){
                 }
             
             
-            }
+            /*}*/
     }
     return 0;
 }
@@ -248,10 +248,12 @@ int main(int argc, char* argv[]) {
 
     for(i=0; i<NumThreads;i++){
         pthread_join(tid[i],NULL);
+        
     }
     pthread_cond_destroy(&cheia);
     pthread_cond_destroy(&noCommand);
     fclose(input);
+    
     
     print_tecnicofs_tree(output);
     fclose(output);

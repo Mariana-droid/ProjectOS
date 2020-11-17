@@ -8,7 +8,7 @@ int is_dir_empty(DirEntry *dirEntries);
 int create(char *name, type nodeType);
 int delete(char *name);
 int lookup(char* name);
-int lookup_path(char *name,int *array);
+int lookup_path(char *name,int *array,int *n);
 void path_unlocker(int *array,int n); 
 void print_tecnicofs_tree(FILE *fp);
 

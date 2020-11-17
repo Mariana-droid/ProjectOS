@@ -6,7 +6,6 @@ c d f
 c e f
 c f f
 c g f
-c h f 
+c h f
 l c
-d c
 l c

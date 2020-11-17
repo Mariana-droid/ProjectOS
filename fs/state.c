@@ -238,10 +238,11 @@ void inode_print_tree(FILE *fp, int inumber, char *name) {
 
 void inode_rwlock_rdlock(int inumber){
     if (inumber < 0 ){
+        printf("DEU ERRO\n");
         return;
     }
-    if(pthread_rwlock_tryrdlock(&inode_table[inumber].lock)!=0){
-        return;
+    if(pthread_rwlock_rdlock(&inode_table[inumber].lock)!=0){
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -249,8 +250,8 @@ void inode_rwlock_wrlock(int inumber){
     if (inumber < 0 ){
         return;
     }
-    if(pthread_rwlock_trywrlock(&inode_table[inumber].lock)!=0){
-        return;
+    if(pthread_rwlock_wrlock(&inode_table[inumber].lock)!=0){
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -260,5 +261,14 @@ void inode_rwlock_unlock(int inumber){
     }
     if(pthread_rwlock_unlock(&inode_table[inumber].lock)!=0){
         exit(EXIT_FAILURE);
+    }
+}
+
+void inode_rwlock_trywrlock(int inumber){
+    if (inumber < 0 ){
+        return;
+    }
+    if(pthread_rwlock_trywrlock(&inode_table[inumber].lock)!=0){
+        return;
     }
 }

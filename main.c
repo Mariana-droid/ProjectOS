@@ -166,12 +166,14 @@ void *applyCommands(){
 
                 switch (token) {
                     case 'c':
+
                         switch (type) {
                             case 'f':
                                 printf("Create file: %s\n", name);
                                 create(name, T_FILE);
                                 break;
                             case 'd':
+
                                 printf("Create directory: %s\n", name);
                                 create(name, T_DIRECTORY);
                                 break;
@@ -198,11 +200,14 @@ void *applyCommands(){
                      }
                 
                 }
+
             
             
             /*}*/
     }
+
     return 0;
+    
 }
 
 

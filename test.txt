@@ -1,19 +1,6 @@
 
-/ergal
-/cypseline
-/telfer
-/saccharimetrical
-/reluctantly
-/drapery
-/Lif
-/Ceramium
-/s1
-/s1/s5
-/coheritage
-/benumb
-/grapelet
-/mesiogingival
-/therology
-/s2
-/autophotometry
-/expiry
+/a
+/a/b
+/a/c
+/a/c/x
+/a/c/x/y

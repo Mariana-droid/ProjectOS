@@ -151,8 +151,6 @@ int create(char *name, type nodeType){
 	if (parent_inumber == FAIL) {
 		printf("failed to create %s, invalid parent dir %s\n", name, parent_name);
 		inode_rwlock_unlock(parent_inumber);
-
-
 		path_unlocker(&array[0],*n);
 
 		return FAIL;
@@ -205,14 +203,12 @@ int create(char *name, type nodeType){
 		       child_name, parent_name);
 		inode_rwlock_unlock(parent_inumber);
 
-
 		inode_rwlock_unlock(child_inumber);
 
 		path_unlocker(&array[0],*n);
 
 		return FAIL;
 	}
-
 	inode_rwlock_unlock(parent_inumber);
 
 
@@ -378,7 +374,7 @@ int lookup(char *name){
 	return current_inumber;
 }
 
-int lookup_path(char *name, int *array,int *n){
+int lookup_path(char *name, int *array, int *n){
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
 	int i = 0;
@@ -392,15 +388,12 @@ int lookup_path(char *name, int *array,int *n){
 	type nType;
 	union Data data;
 
-
-
 	inode_get(current_inumber, &nType, &data);
 
 	char *path = strtok(full_path, delim);
 
-	
 		/* get root inode data */
-	if( path == NULL || strcmp(name,path) == 0 )
+	if( path == NULL || (lookup_sub_node(path, data.dirEntries) == FAIL))
 	{
 		*n = 0;
 		inode_rwlock_wrlock(current_inumber);
@@ -411,9 +404,7 @@ int lookup_path(char *name, int *array,int *n){
 		inode_rwlock_rdlock(current_inumber);
 	}
 	
-	
 	*array = current_inumber;
-
 	i++;
 	array++;
 
@@ -430,11 +421,8 @@ aux = current_inumber;
 		path = strtok(NULL, delim);
 
 	}
-
 	inode_rwlock_unlock(aux);
-
 	inode_rwlock_wrlock(aux);
-
 
 	i=i-1;
 	if(i<0)
@@ -456,6 +444,113 @@ void path_unlocker(int *array,int n){
 
 	}
 }
+
+int move (char* name1,char* name2){
+	int parent_inumber,parent_inumber2, child_inumber;
+	char *parent_name, *parent_name2, *child_name, name_copy[MAX_FILE_NAME];
+	int array[MAX_DIR_ENTRIES] = {};
+	int array2[MAX_DIR_ENTRIES] = {};
+	int i2 = 0;
+	int i = 0;
+	int *n = &i;
+	int *n2 = &i2;
+
+	type pType,cType;
+	union Data pdata,cdata;
+
+	strcpy(name_copy, name1);
+	split_parent_child_from_path(name_copy, &parent_name, &child_name);
+	parent_inumber = lookup_path(parent_name,&array[0],n);
+	if (parent_inumber == FAIL){
+		printf("failed to move %s. invalid parent dir %s\n",name1,parent_name);
+		inode_rwlock_unlock(parent_inumber);
+		path_unlocker(&array[0],*n);
+		return FAIL;
+	}
+
+	inode_get(parent_inumber,&pType,&pdata);
+
+	if (pType != T_DIRECTORY){
+		printf("failed to move %s, parent %s is not a dir\n",name1,parent_name);
+		inode_rwlock_unlock(parent_inumber);
+		path_unlocker(&array[0],*n);
+		return FAIL;
+	}
+	child_inumber = lookup_sub_node(child_name,pdata.dirEntries);
+	if (child_inumber == FAIL){
+		printf("failed to move %s, doesn't exist in dir %s\n",child_name,parent_name);
+		inode_rwlock_unlock(parent_inumber);
+		path_unlocker(&array[0],*n);
+		return FAIL;
+	}
+	inode_rwlock_wrlock(child_inumber);
+	inode_get(child_inumber,&cType,&cdata);
+
+	inode_rwlock_unlock(parent_inumber);
+
+	strcpy(name_copy, name2);
+	split_parent_child_from_path(name_copy, &parent_name2, &child_name);
+	parent_inumber2 = lookup_path(parent_name2,&array2[0],n2);
+
+	if (parent_inumber2 == FAIL){
+		printf("failed to move %s. invalid parent dir %s\n",name2,parent_name2);
+		inode_rwlock_unlock(parent_inumber);
+		inode_rwlock_unlock(parent_inumber2);
+		inode_rwlock_unlock(child_inumber);
+		path_unlocker(&array[0],*n);
+		path_unlocker(&array2[0],*n);
+		return FAIL;
+	}
+
+	inode_get(parent_inumber2,&pType,&pdata);
+
+	if (pType != T_DIRECTORY){
+		printf("failed to move %s, parent %s is not a dir\n",name2,parent_name2);
+		inode_rwlock_unlock(parent_inumber);
+		inode_rwlock_unlock(parent_inumber2);
+		inode_rwlock_unlock(child_inumber);
+		path_unlocker(&array[0],*n);
+		path_unlocker(&array2[0],*n);
+		return FAIL;
+	}
+
+	if (lookup_sub_node(child_name,pdata.dirEntries) != FAIL){
+		printf("failed to move %s,it already exist in dir %s\n",child_name,parent_name2);
+		inode_rwlock_unlock(parent_inumber);
+		inode_rwlock_unlock(parent_inumber2);
+		inode_rwlock_unlock(child_inumber);
+		path_unlocker(&array[0],*n);
+		path_unlocker(&array2[0],*n);
+		return FAIL;
+	}
+	if (dir_reset_entry(parent_inumber,child_inumber) == FAIL){
+		printf("failed to move %s from dir %s\n",child_name,parent_name);
+		inode_rwlock_unlock(parent_inumber);
+		inode_rwlock_unlock(child_inumber);
+		path_unlocker(&array[0],*n);
+		return FAIL;
+	}
+
+	if (dir_add_entry(parent_inumber2,child_inumber,child_name) == FAIL){
+		printf("could not add entry to %s in dir %s\n",child_name,parent_name2);
+		inode_rwlock_unlock(parent_inumber);
+		inode_rwlock_unlock(parent_inumber2);
+		inode_rwlock_unlock(child_inumber);
+		path_unlocker(&array[0],*n);
+		path_unlocker(&array2[0],*n);
+		return FAIL;
+	}
+	inode_rwlock_unlock(parent_inumber);
+	inode_rwlock_unlock(parent_inumber2);
+	inode_rwlock_unlock(child_inumber);
+	path_unlocker(&array[0],*n);
+	path_unlocker(&array2[0],*n);
+
+	return SUCCESS;
+
+}
+
+
 /*
  * Prints tecnicofs tree.
  * Input:

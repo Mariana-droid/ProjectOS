@@ -59,7 +59,5 @@ void inode_print_tree(FILE *fp, int inumber, char *name);
 void inode_rwlock_rdlock(int inumber);
 void inode_rwlock_wrlock(int inumber);
 void inode_rwlock_unlock(int inumber);
-void inode_rwlock_trywrlock(int inumber);
-
 
 #endif /* INODES_H */

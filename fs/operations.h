@@ -10,6 +10,7 @@ int delete(char *name);
 int lookup(char* name);
 int lookup_path(char *name,int *array,int *n);
 void path_unlocker(int *array,int n); 
+int move (char* name1,char* name2);
 void print_tecnicofs_tree(FILE *fp);
 
 #endif /* FS_H */

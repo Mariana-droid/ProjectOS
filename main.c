@@ -87,18 +87,18 @@ void processInput(){
     /* break loop with ^Z or ^D */
     while (fgets(line, sizeof(line)/sizeof(char), input)) {
         char token, type;
-        char name[MAX_INPUT_SIZE]/*,other_name[MAX_INPUT_SIZE]*/;
-        /*sscanf(line, "%c %s %c", &token);
+        char name[MAX_INPUT_SIZE],other_name[MAX_INPUT_SIZE];
+        sscanf(line, "%c", &token);
         if (token == 'm')
         {
-            int numTokens = sscanf(line, "%c %s %c", &token, name, other_name);
+            int numTokens = sscanf(line, "%c %s %s", &token, name, other_name);
             if (numTokens != 3)
-                    errorParse();
+                errorParse();
             if (! (insertCommand(line)))
                 errorParse();
         }
         else
-        {*/
+        {
             int numTokens = sscanf(line, "%c %s %c", &token, name, &type);
         /* perform minimal validation */
             if (numTokens < 1) {
@@ -130,7 +130,7 @@ void processInput(){
                     errorParse();
                 }
             }
-        /*}*/
+        }
         
 
     }
@@ -145,17 +145,21 @@ void *applyCommands(){
                 return 0;
             }
             char token, type;
-            /*char other_name[MAX_INPUT_SIZE];*/
+            char other_name[MAX_INPUT_SIZE];
             char name[MAX_INPUT_SIZE];
-            /*sscanf(command,"%c",&token);
+            sscanf(command,"%c",&token);
             if (token == 'm')
             {           
                 int numTokens = sscanf(command, "%c %s %s", &token, name, other_name);
+                if (numTokens < 2) {
+                    fprintf(stderr, "Error: invalid command in Queue\n");
+                    exit(EXIT_FAILURE);
+                }
                 printf("Move: %s\n",name);
                 move(name,other_name);
             }
             else
-            {*/
+            {
                 int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
                 if (numTokens < 2) {
                     fprintf(stderr, "Error: invalid command in Queue\n");
@@ -166,14 +170,12 @@ void *applyCommands(){
 
                 switch (token) {
                     case 'c':
-
                         switch (type) {
                             case 'f':
                                 printf("Create file: %s\n", name);
                                 create(name, T_FILE);
                                 break;
                             case 'd':
-
                                 printf("Create directory: %s\n", name);
                                 create(name, T_DIRECTORY);
                                 break;
@@ -200,14 +202,10 @@ void *applyCommands(){
                      }
                 
                 }
-
             
-            
-            /*}*/
+            }
     }
-
     return 0;
-    
 }
 
 

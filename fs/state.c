@@ -263,12 +263,3 @@ void inode_rwlock_unlock(int inumber){
         exit(EXIT_FAILURE);
     }
 }
-
-void inode_rwlock_trywrlock(int inumber){
-    if (inumber < 0 ){
-        return;
-    }
-    if(pthread_rwlock_trywrlock(&inode_table[inumber].lock)!=0){
-        return;
-    }
-}

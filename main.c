@@ -38,28 +38,26 @@ void unlock_mutex(){
 
 int insertCommand(char* data) {
     lock_mutex();
-    while (buffer_length == MAX_COMMANDS){ 
+    while (buffer_length == MAX_COMMANDS){ /*Verificar se esta cheio e se estiver esperar pelo sinal*/
         pthread_cond_wait(&cheia,&trinco);    
     }
     strcpy(inputCommands[write_index],data);
-    /*printf("o que foi enfiado no insert %s\n",data);*/
     write_index++;
-    if (write_index == MAX_COMMANDS){
+    if (write_index == MAX_COMMANDS){ /*Se o write_index for igual ao maximo voltar ao 0*/
         write_index = 0;
     }
     buffer_length++;
-    pthread_cond_signal(&noCommand);
+    pthread_cond_signal(&noCommand); /*Sinal a avisar que ha um novo comando*/
     unlock_mutex();
     return 1;
-    /*nao esquecer ERRO (0)!!!!*/
 }
 
 const char* removeCommand() {
     lock_mutex();
     const char* buffer;
-    while (buffer_length == 0 && fim_do_input==0){
+    while (buffer_length == 0 && fim_do_input==0){ /*Verificar se nao ha comandos e se ja chegou ao fim do documento lido*/
         pthread_cond_wait(&noCommand,&trinco);
-        if (buffer_length <= 0 && fim_do_input!=0)
+        if (buffer_length <= 0 && fim_do_input!=0) /*Se ambas as coisas se verificarem, sair do remove porque ja foi lido tudo*/
         {   
             unlock_mutex();
             return NULL;
@@ -67,11 +65,11 @@ const char* removeCommand() {
     }
     buffer = inputCommands[read_index];
     read_index++;
-    if (read_index == MAX_COMMANDS){
+    if (read_index == MAX_COMMANDS){ /*se for igual a length do array, voltar ao inicio, ou seja, 0*/
         read_index = 0;
     }
     buffer_length--;
-    pthread_cond_signal(&cheia);
+    pthread_cond_signal(&cheia);/*Sinal a avisar que foi lido algo do array*/
     unlock_mutex();
     return buffer;
 }
@@ -89,12 +87,12 @@ void processInput(){
         char token, type;
         char name[MAX_INPUT_SIZE],other_name[MAX_INPUT_SIZE];
         sscanf(line, "%c", &token);
-        if (token == 'm')
+        if (token == 'm') /*Se for move*/
         {
-            int numTokens = sscanf(line, "%c %s %s", &token, name, other_name);
+            int numTokens = sscanf(line, "%c %s %s", &token, name, other_name);/*scan the things given*/
             if (numTokens != 3)
                 errorParse();
-            if (! (insertCommand(line)))
+            if (! (insertCommand(line))) /*Regular insert*/
                 errorParse();
         }
         else
@@ -150,13 +148,13 @@ void *applyCommands(){
             sscanf(command,"%c",&token);
             if (token == 'm')
             {           
-                int numTokens = sscanf(command, "%c %s %s", &token, name, other_name);
-                if (numTokens < 2) {
+                int numTokens = sscanf(command, "%c %s %s", &token, name, other_name);/*ler os args do move*/
+                if (numTokens < 2) { /*Verificar se sao os argumentos certos*/
                     fprintf(stderr, "Error: invalid command in Queue\n");
                     exit(EXIT_FAILURE);
                 }
                 printf("Move: %s\n",name);
-                move(name,other_name);
+                move(name,other_name); /*chamar o move*/
             }
             else
             {
@@ -241,13 +239,13 @@ int main(int argc, char* argv[]) {
     gettimeofday(&start,NULL);
     /* process input and print tree */
 
-    for(i=0;i<NumThreads;i++){
+    for(i=0;i<NumThreads;i++){ /*Chamar threads para o apply command*/
         if(pthread_create(&tid[i],NULL,applyCommands,NULL)!=0){
             exit(EXIT_FAILURE);
         }
     }
 
-    processInput();
+    processInput(); /*chamar o process input enquanto as tarefas funcionam*/
 
     for(i=0; i<NumThreads;i++){
         pthread_join(tid[i],NULL);

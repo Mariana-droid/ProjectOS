@@ -18,19 +18,19 @@ int read_index = 0;
 int write_index = 0;
 FILE *input;
 int NumThreads;
-pthread_cond_t cheia,noCommand = PTHREAD_COND_INITIALIZER;
+pthread_cond_t canExecute,canInsert = PTHREAD_COND_INITIALIZER;
 int fim_do_input = 0; /* Ainda faltam comandos -> 0. Ja foram todos os comandos -> 1*/
 
-pthread_mutex_t trinco = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void lock_mutex(){
-    if (pthread_mutex_lock(&trinco)!= 0){
+    if (pthread_mutex_lock(&mutex)!= 0){
         exit(EXIT_FAILURE);
     }
 }
 
 void unlock_mutex(){
-    if (pthread_mutex_unlock(&trinco) != 0){
+    if (pthread_mutex_unlock(&mutex) != 0){
         exit(EXIT_FAILURE);
     }
 }
@@ -39,7 +39,7 @@ void unlock_mutex(){
 int insertCommand(char* data) {
     lock_mutex();
     while (buffer_length == MAX_COMMANDS){ /*Verificar se esta cheio e se estiver esperar pelo sinal*/
-        pthread_cond_wait(&cheia,&trinco);    
+        pthread_cond_wait(&canExecute,&mutex);    
     }
     strcpy(inputCommands[write_index],data);
     write_index++;
@@ -47,7 +47,7 @@ int insertCommand(char* data) {
         write_index = 0;
     }
     buffer_length++;
-    pthread_cond_signal(&noCommand); /*Sinal a avisar que ha um novo comando*/
+    pthread_cond_signal(&canInsert); /*Sinal a avisar que ha um novo comando*/
     unlock_mutex();
     return 1;
 }
@@ -56,7 +56,7 @@ const char* removeCommand() {
     lock_mutex();
     const char* buffer;
     while (buffer_length == 0 && fim_do_input==0){ /*Verificar se nao ha comandos e se ja chegou ao fim do documento lido*/
-        pthread_cond_wait(&noCommand,&trinco);
+        pthread_cond_wait(&canInsert,&mutex);
         if (buffer_length <= 0 && fim_do_input!=0) /*Se ambas as coisas se verificarem, sair do remove porque ja foi lido tudo*/
         {   
             unlock_mutex();
@@ -69,7 +69,7 @@ const char* removeCommand() {
         read_index = 0;
     }
     buffer_length--;
-    pthread_cond_signal(&cheia);/*Sinal a avisar que foi lido algo do array*/
+    pthread_cond_signal(&canExecute);/*Sinal a avisar que foi lido algo do array*/
     unlock_mutex();
     return buffer;
 }
@@ -133,7 +133,7 @@ void processInput(){
 
     }
     fim_do_input = 1;
-    pthread_cond_broadcast(&noCommand);
+    pthread_cond_broadcast(&canInsert);
 }
 
 void *applyCommands(){
@@ -251,8 +251,8 @@ int main(int argc, char* argv[]) {
         pthread_join(tid[i],NULL);
         
     }
-    pthread_cond_destroy(&cheia);
-    pthread_cond_destroy(&noCommand);
+    pthread_cond_destroy(&canExecute);
+    pthread_cond_destroy(&canInsert);
     fclose(input);
     
     

@@ -579,5 +579,8 @@ int move (char* name1,char* name2){
  *  - fp: pointer to output file
  */
 void print_tecnicofs_tree(FILE *fp){
+	inode_rwlock_wrlock(FS_ROOT);
 	inode_print_tree(fp, FS_ROOT, "");
+	inode_rwlock_unlock(FS_ROOT);
+
 }

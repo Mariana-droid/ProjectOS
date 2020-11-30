@@ -44,7 +44,6 @@ void errorParse(){
 
 void *applyCommands(){
     while (1) {
-
         struct sockaddr_un client_addr;
         char in_buffer[INDIM],out_buffer[OUTDIM];
         int res;
@@ -71,7 +70,22 @@ void *applyCommands(){
             }
             printf("Move: %s\n",name);
             move(name,other_name); /*chamar o move*/
-             }
+        }
+
+        if (token == 'p') {
+            char filename[100];
+            int numTokens = sscanf(in_buffer, "%c %s", &token, filename);/*ler os args do print_tree*/
+        
+            if (numTokens < 1) { /*Verificar se sao os argumentos certos*/
+                fprintf(stderr, "Error: invalid command in Queue\n");
+                exit(EXIT_FAILURE);
+            }
+            FILE *output = fopen(filename,"w");
+
+            printf("Print-Tree: %s\n",filename);
+            print_tecnicofs_tree(output); /*coloca no ficheiro de output definido a inode tree atual*/
+            fclose(output);
+        }
     
         else {
             int numTokens = sscanf(in_buffer, "%c %s %c", &token, name, &type);
@@ -113,14 +127,10 @@ void *applyCommands(){
                     fprintf(stderr, "Error: command to apply\n");
                     exit(EXIT_FAILURE);
                 }
-                
             }
-            
         }
         c = sprintf(out_buffer, "%d", res);
-        printf("%s\n",out_buffer);
-        sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_un));//PARA AQUI
-        printf("manda\n");
+        sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_un));
     }
     return 0;
 }
@@ -140,7 +150,6 @@ int main(int argc, char* argv[]) {
     }
 
     NumThreads = atoi(argv[1]);
-    printf("numthreads: %d\n",NumThreads);
 
     if(NumThreads < 1){
         printf("Error in the number of threads\n");
@@ -171,8 +180,6 @@ int main(int argc, char* argv[]) {
     /* process input and print tree */
 
     for(i=0;i<NumThreads;i++) { /*Chamar threads para o apply command*/
-                        printf("thread\n");
-
         if(pthread_create(&tid[i],NULL,applyCommands,NULL)!=0){
             exit(EXIT_FAILURE);
         }

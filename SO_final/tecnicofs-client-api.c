@@ -38,7 +38,6 @@ int tfsCreate(char *filename, char nodeType) {
       perror("client: recvfrom error");
       return -1;
     }
-    printf("sai");
     return 0;
     
   }
@@ -48,12 +47,10 @@ int tfsCreate(char *filename, char nodeType) {
       perror("client: sendto error");
       return -1;
     }
-    printf("antes receive\n");
     if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, &servlen) < 0) {
       perror("client: recvfrom error");
       return -1;
     }
-    printf("sai");
     return 0;
     
   }
@@ -62,16 +59,59 @@ int tfsCreate(char *filename, char nodeType) {
 }
 
 int tfsDelete(char *path) {
-  
-  return -1;
+  char command[100];
+  snprintf (command, 100, "%c %s",'d',path);
+  if (sendto(sockfd, command, strlen(command)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      return -1;
+    }
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, &servlen) < 0) {
+      perror("client: recvfrom error");
+      return -1;
+    }
+  return 0;
 }
 
 int tfsMove(char *from, char *to) {
-  return -1;
+  char command[100];
+  snprintf (command, 100, "%c %s %s",'m',from,to);
+  if (sendto(sockfd, command, strlen(command)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      return -1;
+    }
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, &servlen) < 0) {
+      perror("client: recvfrom error");
+      return -1;
+    }
+  return 0;
 }
 
 int tfsLookup(char *path) {
-  return -1;
+  char command[100];
+  snprintf (command, 100, "%c %s",'l',path);
+  if (sendto(sockfd, command, strlen(command)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      return -1;
+    }
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, &servlen) < 0) {
+      perror("client: recvfrom error");
+      return -1;
+    }
+  return 0;
+}
+
+int tfsPrintTree(char *filename) {
+  char command[100];
+  snprintf (command, 100, "%c %s",'p',filename);
+  if (sendto(sockfd, command, strlen(command)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      return -1;
+    }
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, &servlen) < 0) {
+      perror("client: recvfrom error");
+      return -1;
+    }
+  return 0;
 }
 
 int tfsMount(char * sockPath) {
@@ -80,11 +120,8 @@ int tfsMount(char * sockPath) {
     perror("client: can't open socket");
     return -1;
   }
-
   unlink(SOCKET_CLIENT);
-  
   clilen = setSockAddrUn (SOCKET_CLIENT, &client_addr);
-
   if (bind(sockfd, (struct sockaddr *) &client_addr, clilen) < 0) {
     perror("client: bind error");
     return -1;

@@ -53,8 +53,24 @@ void *processInput() {
         char arg1[MAX_INPUT_SIZE], arg2[MAX_INPUT_SIZE];
         int res;
 
-        int numTokens = sscanf(line, "%c %s %s", &op, arg1, arg2);
+        sscanf(line, "%c",&op);
 
+        if (op == 'p') {  
+            int numTokens = sscanf(line, "%c %s", &op, arg1);
+        
+            if (numTokens < 1) { /* perform minimal validation */
+                fprintf(stderr, "Error: invalid command in Queue\n");
+                exit(EXIT_FAILURE);
+            }
+            res = tfsPrintTree(arg1);
+            if (!res)
+                printf("Created output file: %s\n", arg1);
+            else
+                printf("Unable to create output file: %s\n", arg1);
+            continue;
+        }
+
+        int numTokens = sscanf(line, "%c %s %s", &op, arg1, arg2);
         /* perform minimal validation */
         if (numTokens < 1) {
             continue;

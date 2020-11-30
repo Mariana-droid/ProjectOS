@@ -71,8 +71,7 @@ void *applyCommands(){
             }
             printf("Move: %s\n",name);
             move(name,other_name); /*chamar o move*/
-            sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, addrlen);
-        }
+             }
     
         else {
             int numTokens = sscanf(in_buffer, "%c %s %c", &token, name, &type);
@@ -120,7 +119,7 @@ void *applyCommands(){
         }
         c = sprintf(out_buffer, "%d", res);
         printf("%s\n",out_buffer);
-        sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, addrlen);//PARA AQUI
+        sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_un));//PARA AQUI
         printf("manda\n");
     }
     return 0;

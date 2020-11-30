@@ -3,14 +3,14 @@
 
 CC   = gcc
 LD   = gcc
-CFLAGS =-Wall -std=gnu99 -I../ -g
-LDFLAGS=-lm
+CFLAGS =-pthread -Wall -std=gnu99 -I../ -g
+LDFLAGS=-lm -lpthread
 
 # A phony target is one that is not really the name of a file
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: all clean run
 
-all: tecnicofs
+all: tecnicofs tecnicofs-client
 
 tecnicofs: fs/state.o fs/operations.o main.o
 	$(LD) $(CFLAGS) $(LDFLAGS) -pthread -g -o tecnicofs fs/state.o fs/operations.o main.o
@@ -23,6 +23,15 @@ fs/operations.o: fs/operations.c fs/operations.h fs/state.h tecnicofs-api-consta
 
 main.o: main.c fs/operations.h fs/state.h tecnicofs-api-constants.h
 	$(CC) $(CFLAGS) -o main.o -c main.c
+
+tecnicofs-client: tecnicofs-client-api.o tecnicofs-client.o
+	$(LD) $(CFLAGS) $(LDFLAGS) -o tecnicofs-client tecnicofs-client-api.o tecnicofs-client.o
+
+tecnicofs-client.o: tecnicofs-client.c ../tecnicofs-api-constants.h tecnicofs-client-api.h
+	$(CC) $(CFLAGS) -o tecnicofs-client.o -c tecnicofs-client.c
+
+tecnicofs-client-api.o: tecnicofs-client-api.c ../tecnicofs-api-constants.h tecnicofs-client-api.h
+	$(CC) $(CFLAGS) -o tecnicofs-client-api.o -c tecnicofs-client-api.c
 
 clean:
 	@echo Cleaning...

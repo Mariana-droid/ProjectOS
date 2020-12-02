@@ -6,8 +6,8 @@
 #include <sys/un.h>
 #include <stdio.h>
 
-#define SOCKET_CLIENT "socket_client"
-
+char SOCKET_CLIENT[15];
+int pid_client; 
 int sockfd;
 socklen_t servlen, clilen;
 struct sockaddr_un serv_addr, client_addr;
@@ -116,6 +116,8 @@ int tfsPrintTree(char *filename) {
 
 int tfsMount(char * sockPath) {
 
+  pid_client = getpid();
+  snprintf (SOCKET_CLIENT, 15,"%d",pid_client);
   if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0) ) < 0) {
     perror("client: can't open socket");
     return -1;

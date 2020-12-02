@@ -24,7 +24,6 @@ void inode_table_init() {
         inode_table[i].nodeType = T_NONE;
         inode_table[i].data.dirEntries = NULL;
         inode_table[i].data.fileContents = NULL;
-        pthread_rwlock_init(&inode_table[i].lock,NULL);
     }
 }
 
@@ -94,7 +93,6 @@ int inode_delete(int inumber) {
     inode_table[inumber].nodeType = T_NONE;
     /* see inode_table_destroy function */
     if (inode_table[inumber].data.dirEntries){
-        if(pthread_rwlock_destroy(&inode_table[inumber].lock)!=0) return FAIL;
         free(inode_table[inumber].data.dirEntries);
     }
     return SUCCESS;
@@ -236,30 +234,3 @@ void inode_print_tree(FILE *fp, int inumber, char *name) {
     }
 }
 
-void inode_rwlock_rdlock(int inumber){
-    if (inumber < 0 ){
-        printf("DEU ERRO\n");
-        return;
-    }
-    if(pthread_rwlock_rdlock(&inode_table[inumber].lock)!=0){
-        exit(EXIT_FAILURE);
-    }
-}
-
-void inode_rwlock_wrlock(int inumber){
-    if (inumber < 0 ){
-        return;
-    }
-    if(pthread_rwlock_wrlock(&inode_table[inumber].lock)!=0){
-        exit(EXIT_FAILURE);
-    }
-}
-
-void inode_rwlock_unlock(int inumber){
-    if (inumber < 0 ){
-        return;
-    }
-    if(pthread_rwlock_unlock(&inode_table[inumber].lock)!=0){
-        exit(EXIT_FAILURE);
-    }
-}

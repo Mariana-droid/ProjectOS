@@ -23,6 +23,17 @@
 int sockfd;
 int NumThreads;
 socklen_t addrlen;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+void mutex_lock(){
+    if (pthread_mutex_lock(&lock)!=0)
+        exit(EXIT_FAILURE);
+}
+
+void mutex_unlock(){
+    if (pthread_mutex_unlock(&lock)!=0)
+        exit(EXIT_FAILURE);
+}
 
 int setSockAddrUn(char *path, struct sockaddr_un *addr) {
 
@@ -51,7 +62,7 @@ void *applyCommands(){
 
         addrlen=sizeof(struct sockaddr_un);
 
-        c = recvfrom(sockfd, in_buffer, sizeof(in_buffer)-1, 0,(struct sockaddr *)&client_addr, &addrlen); //recebeu algo
+        c = recvfrom(sockfd, in_buffer, sizeof(in_buffer)-1, 0,(struct sockaddr *)&client_addr, &addrlen); //receives what the client sent
         if (c <= 0) continue;
     
         //Preventivo, caso o cliente nao tenha terminado a mensagem em '\0', 
@@ -67,12 +78,16 @@ void *applyCommands(){
             if (numTokens < 2) { /*Verificar se sao os argumentos certos*/
                 fprintf(stderr, "Error: invalid command in Queue\n");
                 exit(EXIT_FAILURE);
-            }
+            }   
+            mutex_lock();
             printf("Move: %s\n",name);
             move(name,other_name); /*chamar o move*/
+            mutex_unlock();
+            
+
         }
 
-        if (token == 'p') {
+        else if (token == 'p') {
             char filename[100];
             int numTokens = sscanf(in_buffer, "%c %s", &token, filename);/*ler os args do print_tree*/
         
@@ -80,11 +95,12 @@ void *applyCommands(){
                 fprintf(stderr, "Error: invalid command in Queue\n");
                 exit(EXIT_FAILURE);
             }
-            FILE *output = fopen(filename,"w");
-
+            mutex_lock();
+            FILE *output = fopen(filename,"w"); 
             printf("Print-Tree: %s\n",filename);
             print_tecnicofs_tree(output); /*coloca no ficheiro de output definido a inode tree atual*/
             fclose(output);
+            mutex_unlock();
         }
     
         else {
@@ -99,12 +115,16 @@ void *applyCommands(){
                 case 'c':
                     switch (type) {
                         case 'f':
+                            mutex_lock();
                             printf("Create file: %s\n", name);
                             res = create(name, T_FILE);
+                            mutex_unlock();
                             break;
                         case 'd':
+                            mutex_lock();
                             printf("Create directory: %s\n", name);
                             res = create(name, T_DIRECTORY);
+                            mutex_unlock();
                             break;
                         default:
                             printf("Error: invalid node type\n");
@@ -112,16 +132,23 @@ void *applyCommands(){
                     }
                     break;
                 case 'l':
+                    mutex_lock();
                     searchResult = lookup(name);
-                    if (searchResult >= 0)
+                    if (searchResult >= 0){
                         printf("Search: %s found\n", name);
-                    else
+                        mutex_unlock();
+                    }
+                    else{
                         printf("Search: %s not found\n", name);
+                        mutex_unlock();
+                    }
                     break;
 
                 case 'd':
+                    mutex_lock();
                     printf("Delete: %s\n", name);
                     delete(name);
+                    mutex_unlock();
                     break;
                 default: { /* error */
                     fprintf(stderr, "Error: command to apply\n");
